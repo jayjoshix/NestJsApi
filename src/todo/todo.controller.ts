@@ -1,32 +1,48 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { TodoService } from './todo.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
+import { JwtAuthGuard } from 'src/auth/auth.guard';
+import { userEmail } from 'src/common/decorators/user-email.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiOperation } from '@nestjs/swagger';
 
+@ApiTags('Todo')
 @Controller('todo')
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
-
+  @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@ApiOperation({ description:'To add a new task wrt to user email', summary: 'Add a new task.' })
    @Post()
-  async create(@Body() createTodoDto: CreateTodoDto) {
-    return await this.todoService.create(createTodoDto);
+  async create(@Body() createTodoDto: CreateTodoDto, @userEmail()userEmail: string) {
+    return await this.todoService.create(createTodoDto, userEmail);
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ description:'To get all the user tasks.', summary: 'To get all the user tasks.' })
   @Get()
-  async findAll() {
-    return await this.todoService.findAll();
+  async findAll(@userEmail()userEmail: string) {
+    console.log(userEmail)
+    return await this.todoService.findAll(userEmail);
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ description:'To get a specific the user task.', summary: 'To get a specific the user task.' })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.todoService.findOne(+id);
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ description:'To update a specific the user task.', summary: 'To update a specific the user task.' })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTodoDto: UpdateTodoDto) {
     return this.todoService.update(+id, updateTodoDto);
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ description:'To delete a specific the user task.', summary: 'To delete a specific the user task.' })
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.todoService.remove(+id);
